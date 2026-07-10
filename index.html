@@ -1,0 +1,636 @@
+<!DOCTYPE html>
+<html lang="cs" data-theme="light">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>20 — Dvacítka ve vzpomínkách</title>
+
+<!-- ============================================================
+     "20 — Dvacítka ve vzpomínkách"  ·  varianta „Konfety"
+     Statická aplikace pro GitHub Pages. Žádný backend, žádný Gist.
+     Obsah (fotky/básničky/hudba) = statické assety v repozitáři.
+     Konvence názvů assetů viz sekce KONFIGURACE OBSAHU níže v <script>.
+     ============================================================ -->
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@600;700;800&family=Poppins:wght@400;500;600;700&family=Caveat:wght@600;700&display=swap" rel="stylesheet">
+
+<style>
+  /* === BAREVNÁ SCHÉMATA (den = light, noc = dark) ============ */
+  :root {
+    --bg-a: #F8F6FE;
+    --bg-b: #EFEAFB;
+    --surface: #ffffff;
+    --text: #241a44;
+    --text-muted: #6b6285;
+    --border: #E3DDF5;
+    --shadow: 0 8px 24px rgba(124,77,255,0.12);
+    --tile-face: #ffffff;
+    --star-display: none;      /* hvězdy jen v noci */
+
+    /* akcentní trojice – "konfety" */
+    --c1: #7C4DFF;  /* fialová */
+    --c2: #00E5FF;  /* tyrkysová */
+    --c3: #FF4081;  /* růžová */
+  }
+  html[data-theme="dark"] {
+    --bg-a: #0B0D1D;
+    --bg-b: #0B0D1D;
+    --surface: #171633;
+    --text: #EDE9FF;
+    --text-muted: #A79FD0;
+    --border: #2A2650;
+    --shadow: 0 8px 26px rgba(0,0,0,0.55);
+    --tile-face: #1B1940;
+    --star-display: block;
+  }
+
+  /* === ZÁKLAD ================================================ */
+  * { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; }
+  body {
+    font-family: 'Poppins', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    background: linear-gradient(160deg, var(--bg-a), var(--bg-b));
+    color: var(--text);
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    transition: background 0.4s ease, color 0.3s ease;
+    overflow-x: hidden;
+  }
+  h1, h2, h3 { font-family: 'Baloo 2', sans-serif; }
+
+  /* === DEKORATIVNÍ POZADÍ (neinteraktivní) =================== */
+  .bg-decor {
+    position: fixed;
+    inset: 0;
+    z-index: 0;
+    pointer-events: none;
+    overflow: hidden;
+  }
+  .glow {
+    position: absolute;
+    border-radius: 50%;
+    filter: blur(60px);
+    opacity: 0.5;
+    animation: pulse 9s ease-in-out infinite;
+  }
+  .shape {
+    position: absolute;
+    opacity: 0.7;
+    animation: drift linear infinite;
+  }
+  .shape.star   { clip-path: polygon(50% 0,61% 35%,98% 35%,68% 57%,79% 91%,50% 70%,21% 91%,32% 57%,2% 35%,39% 35%); }
+  .shape.diamond{ transform: rotate(45deg); border-radius: 3px; }
+  .shape.streamer { border-radius: 6px; }
+  .star-field { position: absolute; inset: 0; display: var(--star-display); }
+  .twinkle {
+    position: absolute;
+    width: 2px; height: 2px;
+    background: #fff;
+    border-radius: 50%;
+    animation: twinkle 3s ease-in-out infinite;
+  }
+  @keyframes pulse {
+    0%,100% { transform: scale(1);   opacity: 0.40; }
+    50%     { transform: scale(1.25);opacity: 0.65; }
+  }
+  @keyframes drift {
+    0%   { transform: translateY(0) rotate(0deg); }
+    100% { transform: translateY(-140px) rotate(360deg); }
+  }
+  @keyframes twinkle {
+    0%,100% { opacity: 0.15; }
+    50%     { opacity: 0.9; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .shape, .glow, .twinkle { animation: none !important; }
+  }
+
+  /* === HLAVIČKA ============================================= */
+  .app-header {
+    position: relative;
+    z-index: 3;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    flex-wrap: wrap;
+    padding: 14px 22px;
+    background: color-mix(in srgb, var(--surface) 80%, transparent);
+    backdrop-filter: blur(8px);
+    border-bottom: 1px solid var(--border);
+  }
+  .brand { display: flex; align-items: center; gap: 14px; }
+  .brand-logo {
+    width: 72px; height: 72px;
+    border-radius: 16px;
+    background: url('./ikony/20_svicky_1.jpg') center/cover no-repeat,
+                linear-gradient(135deg, var(--c1), var(--c3));
+    box-shadow: 0 5px 16px rgba(124,77,255,0.4);
+    flex: 0 0 auto;
+  }
+  .brand-title { margin: 0; font-size: 1.55rem; font-weight: 800; line-height: 1.05; }
+
+  .header-actions { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+
+  /* --- Ovladač hudby --- */
+  .music {
+    display: inline-flex; align-items: center; gap: 8px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 999px;
+    padding: 5px 12px 5px 8px;
+    box-shadow: var(--shadow);
+  }
+  .music-btn {
+    display: inline-flex; align-items: center; justify-content: center;
+    width: 30px; height: 30px;
+    border: none; border-radius: 50%;
+    background: linear-gradient(135deg, var(--c1), var(--c3));
+    color: #fff; cursor: pointer; font-size: 14px;
+    transition: transform 0.12s ease, opacity 0.2s ease;
+  }
+  .music-btn:hover { transform: scale(1.08); }
+  .music-next {
+    background: none; color: var(--text-muted);
+    width: 26px; height: 26px; font-size: 15px;
+  }
+  .music-next:hover { color: var(--text); }
+  .music[data-disabled="true"] { opacity: 0.55; }
+  .music[data-disabled="true"] .music-btn { pointer-events: none; }
+  .music-info { display: flex; align-items: center; gap: 8px; max-width: 200px; }
+  .music-name {
+    font-size: 0.8rem; color: var(--text-muted);
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  }
+  /* ekvalizér */
+  .eq { display: none; align-items: flex-end; gap: 2px; height: 16px; }
+  .music[data-playing="true"] .eq { display: inline-flex; }
+  .eq span {
+    width: 3px; background: var(--c1); border-radius: 2px;
+    animation: eq 0.9s ease-in-out infinite;
+  }
+  .eq span:nth-child(1) { animation-delay: 0s;    background: var(--c1); }
+  .eq span:nth-child(2) { animation-delay: 0.25s; background: var(--c2); }
+  .eq span:nth-child(3) { animation-delay: 0.5s;  background: var(--c3); }
+  @keyframes eq { 0%,100% { height: 4px; } 50% { height: 16px; } }
+
+  /* --- Theme toggle (jedno tlačítko, cykluje Auto→Den→Noc) --- */
+  .theme-toggle {
+    display: inline-flex; align-items: center; gap: 6px;
+    background: var(--surface); color: var(--text);
+    border: 1px solid var(--border); border-radius: 999px;
+    padding: 7px 14px; font: inherit; font-size: 0.85rem; line-height: 1;
+    cursor: pointer; user-select: none;
+    box-shadow: var(--shadow);
+    transition: background 0.15s ease, color 0.15s ease, border-color 0.15s ease;
+  }
+  .theme-toggle:hover { border-color: var(--c1); }
+  .theme-toggle:focus-visible { outline: 2px solid var(--c1); outline-offset: 2px; }
+  .theme-toggle-icon { font-size: 1rem; line-height: 1; }
+  .theme-toggle-hint { color: var(--text-muted); font-size: 0.8rem; }
+  .theme-toggle[data-mode="day"]   { background: #fff7d6; color: #5a4400; border-color: #e8d27a; }
+  .theme-toggle[data-mode="night"] { background: #1B1940; color: #EDE9FF; border-color: #3A3470; }
+
+  /* === HLAVNÍ OBSAH ========================================= */
+  main {
+    position: relative; z-index: 2;
+    flex: 1; width: 100%;
+    max-width: 980px; margin: 0 auto;
+    padding: 30px 20px 40px;
+  }
+  .intro { text-align: center; margin: 4px 0 26px; }
+  .intro h2 {
+    margin: 0 0 4px; font-size: clamp(1.4rem, 4vw, 2rem); font-weight: 800;
+    background: linear-gradient(90deg, var(--c1), var(--c2), var(--c3));
+    -webkit-background-clip: text; background-clip: text; color: transparent;
+  }
+  .intro p { margin: 0; color: var(--text-muted); font-size: 0.95rem; }
+
+  /* === MŘÍŽKA DLAŽDIC ======================================= */
+  .grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(190px, 1fr));
+    gap: 18px;
+    perspective: 1000px;
+  }
+  .tile {
+    position: relative;
+    aspect-ratio: 1 / 1;
+    cursor: pointer;
+    transform-style: preserve-3d;
+    transition: transform 0.22s ease;
+    background: none; border: none; padding: 0;
+    font-family: inherit; color: inherit;
+  }
+  .tile:focus-visible { outline: 3px solid var(--c1); outline-offset: 4px; border-radius: 26px; }
+  /* mírné "nálepkové" natočení dle pozice se řídí --rot proměnnou z JS */
+  .tile-face {
+    position: absolute; inset: 0;
+    display: flex; align-items: center; justify-content: center;
+    border-radius: 28px;
+    background: var(--tile-face);
+    box-shadow: var(--shadow);
+    transform: rotate(var(--rot, 0deg));
+    transition: transform 0.12s ease;
+    overflow: hidden;
+    padding: 12px;
+    text-align: center;
+  }
+  .tile:hover .tile-face { transform: rotate(0deg) scale(1.03); }
+  /* flip stav – JS přidá .flipping na půl otočky */
+  .tile.flipping .tile-face { transform: rotate(var(--rot,0deg)) rotateY(90deg); }
+
+  /* barevný přerušovaný okraj (číslo/básnička) */
+  .tile[data-state="number"] .tile-face,
+  .tile[data-state="poem"]   .tile-face {
+    border: 3px dashed var(--tile-accent);
+  }
+
+  /* --- stav ČÍSLO --- */
+  .num {
+    font-family: 'Baloo 2', sans-serif; font-weight: 800;
+    font-size: clamp(56px, 16vw, 96px); line-height: 1;
+    background: linear-gradient(135deg, var(--tile-accent), var(--tile-accent2));
+    -webkit-background-clip: text; background-clip: text; color: transparent;
+    transform: rotate(var(--num-rot, 0deg));
+    text-shadow: 0 6px 14px rgba(0,0,0,0.10);
+    filter: drop-shadow(0 4px 6px rgba(0,0,0,0.12));
+  }
+
+  /* --- stav FOTKA (polaroid) --- */
+  .photo-wrap {
+    width: 100%; height: 100%;
+    border-radius: 18px;
+    background: var(--surface);
+    padding: 8px;
+    box-shadow: 0 6px 16px color-mix(in srgb, var(--tile-accent) 45%, transparent);
+    transform: rotate(3deg);
+    display: flex; align-items: center; justify-content: center;
+  }
+  .photo-wrap img {
+    width: 100%; height: 100%; object-fit: cover; border-radius: 12px; display: block;
+  }
+  .photo-missing {
+    width: 100%; height: 100%; border-radius: 12px;
+    border: 2px dashed var(--tile-accent);
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    gap: 6px; color: var(--text-muted); font-size: 0.8rem; text-align: center; padding: 8px;
+  }
+  .photo-missing .big { font-size: 1.4rem; }
+
+  /* --- stav BÁSNIČKA --- */
+  .poem {
+    position: relative; width: 100%; height: 100%;
+    display: flex; align-items: center; justify-content: center;
+    transform: rotate(-2deg); padding: 6px 10px;
+  }
+  .poem .quote {
+    position: absolute; top: 2px; left: 10px;
+    font-family: 'Baloo 2', sans-serif; font-size: 44px; line-height: 1;
+    color: var(--tile-accent); opacity: 0.5;
+  }
+  .poem-text {
+    font-family: 'Caveat', cursive; font-size: 19px; line-height: 1.25;
+    color: var(--text); white-space: pre-line; z-index: 1;
+  }
+  .poem-missing { font-family: 'Poppins', sans-serif; font-size: 0.8rem; color: var(--text-muted); }
+
+  /* nápověda o cyklení – malý indikátor stavu v rohu */
+  .state-dots {
+    position: absolute; bottom: 8px; left: 50%; transform: translateX(-50%);
+    display: flex; gap: 4px; z-index: 2;
+  }
+  .state-dots i {
+    width: 5px; height: 5px; border-radius: 50%;
+    background: var(--text-muted); opacity: 0.35;
+  }
+  .state-dots i.on { opacity: 1; background: var(--tile-accent); }
+
+  /* === ZÁPATÍ ============================================== */
+  .app-footer {
+    position: relative; z-index: 2;
+    padding: 14px 24px; text-align: center;
+    font-size: 0.8rem; color: var(--text-muted);
+  }
+
+  /* === RESPONZIVITA ======================================== */
+  @media (max-width: 560px) {
+    .grid { grid-template-columns: repeat(2, 1fr); gap: 12px; }
+    .brand-title { font-size: 1.25rem; }
+    main { padding: 22px 14px 32px; }
+    .header-actions { gap: 8px; }
+    .music-info { max-width: 120px; }
+  }
+</style>
+</head>
+<body>
+
+<!-- Dekorativní pozadí (generováno JS) -->
+<div class="bg-decor" id="bgDecor" aria-hidden="true">
+  <div class="star-field" id="starField"></div>
+</div>
+
+<header class="app-header">
+  <div class="brand">
+    <div class="brand-logo" id="brandLogo" role="img" aria-label="Logo – 20 svíček"></div>
+    <h1 class="brand-title">Dvacítka ve vzpomínkách</h1>
+  </div>
+
+  <div class="header-actions">
+    <!-- Ovladač hudby -->
+    <div class="music" id="music" data-disabled="true" data-playing="false">
+      <button class="music-btn" id="musicToggle" type="button" aria-label="Přehrát / zastavit hudbu" title="Přehrát / zastavit hudbu na pozadí">▶</button>
+      <div class="music-info">
+        <span class="eq" aria-hidden="true"><span></span><span></span><span></span></span>
+        <span class="music-name" id="musicName">Hudba (doplnit)</span>
+      </div>
+      <button class="music-next" id="musicNext" type="button" aria-label="Další skladba" title="Další skladba">⏭</button>
+    </div>
+
+    <!-- Theme toggle -->
+    <button class="theme-toggle" id="themeToggle" type="button" data-mode="auto"
+            aria-label="Přepnout režim zobrazení" title="Klikni pro přepnutí režimu (Auto → Den → Noc)">
+      <span class="theme-toggle-icon" id="themeIcon" aria-hidden="true">◐</span>
+      <span class="theme-toggle-label" id="themeLabel">Auto</span>
+      <span class="theme-toggle-hint" id="themeHint">(den)</span>
+    </button>
+  </div>
+</header>
+
+<main>
+  <div class="grid" id="grid"><!-- dlaždice generuje JS --></div>
+</main>
+
+<footer class="app-footer">
+  (c) 2026 KeCl v1.1
+</footer>
+
+<audio id="audio" preload="none"></audio>
+
+<script>
+/* =====================================================================
+   KONFIGURACE OBSAHU  —  ZDE se doplňují reálné assety
+   ---------------------------------------------------------------------
+   Fotky:  soubory do složky ./fotky/ , pojmenované  vek-1.jpg ... vek-20.jpg
+           (funguje .jpg; pro jiný formát uprav PHOTO_EXT nebo cestu níže)
+   Básničky: doplň text do pole POEMS (index 0 = rok 1, ... index 19 = rok 20)
+   Hudba:  audio do složky ./hudba/ a přidej položky do pole TRACKS
+   ===================================================================== */
+
+  const PHOTO_DIR = './fotky/';
+  const PHOTO_EXT = '.jpg';
+  const photoSrc = (age) => `${PHOTO_DIR}vek_${age}${PHOTO_EXT}`;
+
+  // 20 básniček (prázdné = zobrazí se placeholder "doplnit básničku")
+  const POEMS = [
+    /* 1 */  "",
+    /* 2 */  "",
+    /* 3 */  "",
+    /* 4 */  "",
+    /* 5 */  "",
+    /* 6 */  "Naše malá dvojčátka, šest let už jim je,\npři baletu na špičkách radost tancuje.\nDělají i další fajn a skvělé věci,\nneustále v pohybu, neposedí v kleci.",
+    /* 7 */  "",
+    /* 8 */  "",
+    /* 9 */  "",
+    /* 10 */ "",
+    /* 11 */ "",
+    /* 12 */ "",
+    /* 13 */ "",
+    /* 14 */ "",
+    /* 15 */ "",
+    /* 16 */ "",
+    /* 17 */ "",
+    /* 18 */ "",
+    /* 19 */ "",
+    /* 20 */ "",
+  ];
+
+  // Skladby na pozadí. Až budou hotové, např.:
+  //   { name: "Název skladby", src: "./hudba/skladba1.mp3" },
+  const TRACKS = [
+    // zatím prázdné – ovladač hudby je neaktivní, dokud sem něco nepřidáš
+  ];
+
+/* =====================================================================
+   LOGIKA APLIKACE  —  níže obvykle není potřeba nic měnit
+   ===================================================================== */
+
+  const ACCENTS = [
+    { c: 'var(--c1)', c2: 'var(--c3)' }, // fialová→růžová
+    { c: 'var(--c2)', c2: 'var(--c1)' }, // tyrkysová→fialová
+    { c: 'var(--c3)', c2: 'var(--c2)' }, // růžová→tyrkysová
+  ];
+  const STATES = ['number', 'photo', 'poem'];
+  const TILE_ROT = [-8, 6, -5, 4, -6, 5, -4, 7, -8, 6, -5, 4, -6, 5, -4, 7, -8, 6, -5, 4];
+
+  /* ---- Sestavení mřížky ---- */
+  const grid = document.getElementById('grid');
+  for (let age = 1; age <= 20; age++) {
+    const i = age - 1;
+    const accent = ACCENTS[i % 3];
+    const tile = document.createElement('button');
+    tile.className = 'tile';
+    tile.type = 'button';
+    tile.dataset.state = 'number';
+    tile.dataset.age = age;
+    tile.style.setProperty('--rot', TILE_ROT[i] + 'deg');
+    tile.style.setProperty('--tile-accent', accent.c);
+    tile.style.setProperty('--tile-accent2', accent.c2);
+    tile.setAttribute('aria-label', `Rok ${age} — klikni pro přepnutí (číslo / fotka / básnička)`);
+
+    const face = document.createElement('div');
+    face.className = 'tile-face';
+    face.innerHTML = renderState('number', age);
+
+    const dots = document.createElement('div');
+    dots.className = 'state-dots';
+    dots.innerHTML = '<i class="on"></i><i></i><i></i>';
+
+    tile.appendChild(face);
+    tile.appendChild(dots);
+    grid.appendChild(tile);
+
+    tile.addEventListener('click', () => cycleTile(tile));
+  }
+
+  function renderState(state, age) {
+    const i = age - 1;
+    if (state === 'number') {
+      const numRot = (i % 2 === 0) ? 4 : -4;
+      return `<span class="num" style="--num-rot:${numRot}deg">${age}</span>`;
+    }
+    if (state === 'photo') {
+      return `<div class="photo-wrap">
+                <img src="${photoSrc(age)}" alt="Fotka – ${age} let"
+                     onerror="this.parentNode.innerHTML='<div class=&quot;photo-missing&quot;><span class=&quot;big&quot;>📷</span>doplnit fotku<br>(${age} let)</div>'">
+              </div>`;
+    }
+    // poem
+    const text = (POEMS[i] || '').trim();
+    if (!text) {
+      return `<div class="poem"><span class="quote">&ldquo;</span>
+                <span class="poem-missing">doplnit básničku<br>(rok ${age})</span></div>`;
+    }
+    return `<div class="poem"><span class="quote">&ldquo;</span>
+              <span class="poem-text">${escapeHtml(text)}</span></div>`;
+  }
+
+  function escapeHtml(s) {
+    return s.replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+  }
+
+  /* ---- Cyklení stavů s flip animací (odolné proti rychlému klikání) ---- */
+  function cycleTile(tile) {
+    if (tile.dataset.animating === '1') return;   // zámek během animace
+    tile.dataset.animating = '1';
+
+    const age = parseInt(tile.dataset.age, 10);
+    const cur = tile.dataset.state;
+    const next = STATES[(STATES.indexOf(cur) + 1) % STATES.length];
+    const face = tile.querySelector('.tile-face');
+
+    tile.classList.add('flipping');            // otočí na 90°
+    setTimeout(() => {
+      face.innerHTML = renderState(next, age); // vymění obsah v "neviditelné" fázi
+      tile.dataset.state = next;
+      updateDots(tile, next);
+      tile.classList.remove('flipping');       // dotočí zpět
+      setTimeout(() => { tile.dataset.animating = '0'; }, 230);
+    }, 220);
+  }
+
+  function updateDots(tile, state) {
+    const idx = STATES.indexOf(state);
+    tile.querySelectorAll('.state-dots i').forEach((d, k) => {
+      d.classList.toggle('on', k === idx);
+    });
+  }
+
+  /* ---- Dekorativní pozadí: plovoucí tvary + glow + hvězdy ---- */
+  (function buildDecor() {
+    const decor = document.getElementById('bgDecor');
+    const stars = document.getElementById('starField');
+    const colors = ['var(--c1)', 'var(--c2)', 'var(--c3)'];
+    const rnd = (a, b) => a + Math.random() * (b - a);
+
+    // velké rozostřené glow kruhy
+    for (let i = 0; i < 4; i++) {
+      const g = document.createElement('div');
+      g.className = 'glow';
+      const size = rnd(180, 340);
+      g.style.width = g.style.height = size + 'px';
+      g.style.left = rnd(-5, 90) + '%';
+      g.style.top = rnd(-5, 85) + '%';
+      g.style.background = colors[i % 3];
+      g.style.animationDelay = rnd(0, 6) + 's';
+      decor.appendChild(g);
+    }
+
+    // plovoucí tvary (kolečka, hvězdičky, kosočtverce, streamery)
+    const kinds = ['circle', 'star', 'diamond', 'streamer'];
+    for (let i = 0; i < 26; i++) {
+      const s = document.createElement('div');
+      const kind = kinds[i % kinds.length];
+      s.className = 'shape ' + kind;
+      const col = colors[i % 3];
+      let w = rnd(8, 20);
+      s.style.background = col;
+      if (kind === 'circle')  { s.style.borderRadius = '50%'; s.style.width = w+'px'; s.style.height = w+'px'; }
+      if (kind === 'star')    { s.style.width = (w+6)+'px'; s.style.height = (w+6)+'px'; }
+      if (kind === 'diamond') { s.style.width = w+'px'; s.style.height = w+'px'; }
+      if (kind === 'streamer'){ s.style.width = rnd(4,7)+'px'; s.style.height = rnd(22,40)+'px'; s.style.opacity = 0.45; }
+      s.style.left = rnd(0, 100) + '%';
+      s.style.top = rnd(0, 100) + '%';
+      s.style.animationDuration = rnd(9, 20) + 's';
+      s.style.animationDelay = '-' + rnd(0, 12) + 's';
+      decor.appendChild(s);
+    }
+
+    // hvězdná obloha (viditelná jen v noci přes CSS proměnnou)
+    let html = '';
+    for (let i = 0; i < 70; i++) {
+      html += `<div class="twinkle" style="left:${rnd(0,100)}%;top:${rnd(0,100)}%;animation-delay:${rnd(0,3)}s"></div>`;
+    }
+    stars.innerHTML = html;
+  })();
+
+  /* ---- Ovladač hudby ---- */
+  (function musicCtrl() {
+    const box    = document.getElementById('music');
+    const audio  = document.getElementById('audio');
+    const toggle = document.getElementById('musicToggle');
+    const nextBtn= document.getElementById('musicNext');
+    const nameEl = document.getElementById('musicName');
+    let idx = 0;
+
+    if (!TRACKS.length) {
+      box.dataset.disabled = 'true';
+      nameEl.textContent = 'Hudba (doplnit)';
+      return;
+    }
+    box.dataset.disabled = 'false';
+    load(0);
+
+    function load(i) {
+      idx = (i + TRACKS.length) % TRACKS.length;
+      audio.src = TRACKS[idx].src;
+      nameEl.textContent = TRACKS[idx].name || ('Skladba ' + (idx + 1));
+    }
+    function play() { audio.play().then(() => setPlaying(true)).catch(() => setPlaying(false)); }
+    function setPlaying(on) {
+      box.dataset.playing = on ? 'true' : 'false';
+      toggle.textContent = on ? '⏸' : '▶';
+    }
+
+    toggle.addEventListener('click', () => {
+      if (audio.paused) play(); else { audio.pause(); setPlaying(false); }
+    });
+    nextBtn.addEventListener('click', () => {
+      const wasPlaying = !audio.paused;
+      load(idx + 1);
+      if (wasPlaying) play();
+    });
+    audio.addEventListener('ended', () => { load(idx + 1); play(); });
+  })();
+
+  /* ---- THEME TOGGLE (jedno tlačítko: auto → day → night → auto) ---- */
+  (function themeCtrl() {
+    const html    = document.documentElement;
+    const btn     = document.getElementById('themeToggle');
+    const iconEl  = document.getElementById('themeIcon');
+    const labelEl = document.getElementById('themeLabel');
+    const hintEl  = document.getElementById('themeHint');
+    const ORDER = ['auto', 'day', 'night'];
+    let mode = 'auto';
+
+    const isDayNow = () => { const h = new Date().getHours(); return h >= 6 && h < 19; };
+
+    function render() {
+      btn.dataset.mode = mode;
+      if (mode === 'auto') {
+        const day = isDayNow();
+        html.setAttribute('data-theme', day ? 'light' : 'dark');
+        iconEl.textContent = '◐'; labelEl.textContent = 'Auto';
+        hintEl.style.display = 'none';
+      } else if (mode === 'day') {
+        html.setAttribute('data-theme', 'light');
+        iconEl.textContent = '☀'; labelEl.textContent = 'Den'; hintEl.style.display = 'none';
+      } else {
+        html.setAttribute('data-theme', 'dark');
+        iconEl.textContent = '☾'; labelEl.textContent = 'Noc'; hintEl.style.display = 'none';
+      }
+    }
+    btn.addEventListener('click', () => {
+      mode = ORDER[(ORDER.indexOf(mode) + 1) % ORDER.length];
+      render();
+    });
+    render();
+    setInterval(() => { if (mode === 'auto') render(); }, 60000);
+  })();
+</script>
+
+</body>
+</html>
