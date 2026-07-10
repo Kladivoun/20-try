@@ -155,17 +155,32 @@
     transition: transform 0.12s ease, opacity 0.2s ease;
   }
   .music-btn:hover { transform: scale(1.08); }
-  .music-next {
-    background: none; color: var(--text-muted);
-    width: 26px; height: 26px; font-size: 15px;
+  /* přeskakování skladeb – bez ohraničení a pozadí */
+  .music-skip {
+    display: inline-flex; align-items: center; justify-content: center;
+    background: none; border: none; padding: 0;
+    color: var(--text-muted); cursor: pointer;
+    width: 24px; height: 26px; font-size: 15px; line-height: 1;
+    transition: transform 0.12s ease, color 0.15s ease;
   }
-  .music-next:hover { color: var(--text); }
+  .music-skip:hover { color: var(--text); transform: scale(1.15); }
+  .music-skip:focus-visible { outline: 2px solid var(--c1); outline-offset: 2px; border-radius: 6px; }
   .music[data-disabled="true"] { opacity: 0.55; }
   .music[data-disabled="true"] .music-btn { pointer-events: none; }
-  .music-info { display: flex; align-items: center; gap: 8px; max-width: 200px; }
+  .music-info { display: flex; align-items: center; gap: 8px; }
+  /* okno názvu skladby – pevná šířka; dlouhé názvy se posouvají (marquee) */
   .music-name {
+    display: inline-block; width: 170px;
     font-size: 0.8rem; color: var(--text-muted);
-    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+    white-space: nowrap; overflow: hidden;
+  }
+  .music-name .marquee-inner { display: inline-block; white-space: nowrap; will-change: transform; }
+  .music-name.scroll .marquee-inner {
+    animation: marquee var(--dur, 8s) ease-in-out infinite alternate;
+  }
+  @keyframes marquee {
+    0%, 12%   { transform: translateX(0); }
+    88%, 100% { transform: translateX(calc(-1 * var(--shift, 0px))); }
   }
   /* ekvalizér */
   .eq { display: none; align-items: flex-end; gap: 2px; height: 16px; }
@@ -399,6 +414,11 @@
       display: flex; flex-wrap: nowrap;
       justify-content: space-between; align-items: center; gap: 8px;
     }
+    /* užší okno názvu, aby se ovladač na mobil vešel */
+    .music-name { width: 108px; }
+    /* přepínač stylů jen jako ikonka – bez textu auto/den/noc */
+    .theme-toggle { padding: 8px 10px; }
+    .theme-toggle-label { display: none; }
 
     /* na mobilu dlaždice srovnané rovně – bez náklonu */
     .tile-tilt { transform: none; }
@@ -428,7 +448,8 @@
         <span class="eq" aria-hidden="true"><span></span><span></span><span></span></span>
         <span class="music-name" id="musicName">Hudba (doplnit)</span>
       </div>
-      <button class="music-next" id="musicNext" type="button" aria-label="Další skladba" title="Další skladba">⏭</button>
+      <button class="music-skip" id="musicPrev" type="button" aria-label="Předchozí skladba" title="Předchozí skladba">⏮</button>
+      <button class="music-skip" id="musicNext" type="button" aria-label="Další skladba" title="Další skladba">⏭</button>
     </div>
 
     <!-- Theme toggle -->
@@ -451,7 +472,7 @@
 </div>
 
 <footer class="app-footer">
-  (c) 2026 KeCl v1.3
+  (c) 2026 KeCl v1.4
 </footer>
 
 <audio id="audio" preload="none"></audio>
@@ -497,8 +518,26 @@
   // Skladby na pozadí. Až budou hotové, např.:
   //   { name: "Název skladby", src: "./hudba/skladba1.mp3" },
   const TRACKS = [
-    { name: "V rytmu", src: "./hudba/1_V rytmu.mp3" },
-    { name: "Jízda",   src: "./hudba/2_Jizda.mp3" },
+    { name: "1. Roztoč ten sál", src: "./hudba/1-Roztoč_ten_sál.mp3" },
+    { name: "2. Dvacet svíček", src: "./hudba/2-Dvacet_svíček.mp3" },
+    { name: "3. Cítíš ten groove", src: "./hudba/3-Cítíš_ten_groove.mp3" },
+    { name: "4. Zvedni pěst", src: "./hudba/4-Zvedni_pěst.mp3" },
+    { name: "5. Mikrofon je náš", src: "./hudba/5-Mikrofon_je_náš.mp3" },
+    { name: "6. Easy vibe", src: "./hudba/6-Easy_vibe.mp3" },
+    { name: "7. Krásný sen", src: "./hudba/7-Krásný_sen.mp3" },
+    { name: "8. Ruce nahoru", src: "./hudba/8-Ruce_nahoru.mp3" },
+    { name: "9. Muévete ya", src: "./hudba/9-Muévete_ ya.mp3" },
+    { name: "10. Šampus teče", src: "./hudba/10-Šampus_teče.mp3" },
+    { name: "11. Na zdraví hej", src: "./hudba/11-Na_zdraví_hej.mp3" },
+    { name: "12. Neonová noc", src: "./hudba/12-Neonová_noc.mp3" },
+    { name: "13. Cítíš tu lásku", src: "./hudba/13-Cítíš_tu_lásku.mp3" },
+    { name: "14. Kytara a hlas", src: "./hudba/14-Kytara_a_hlas.mp3" },
+    { name: "15. Basová bouř", src: "./hudba/15-Basová_bouř.mp3" },
+    { name: "16. Opona vzhůru", src: "./hudba/16-Opona_vzhůru.mp3" },
+    { name: "17. Zvedni hlas", src: "./hudba/17-Zvedni_hlas.mp3" },
+    { name: "18. Praská strop", src: "./hudba/18-Praská_strop.mp3" },
+    { name: "19. Na beatu jak král", src: "./hudba/19-Na_beatu_jak_král.mp3" },
+    { name: "20. Do kola jdem", src: "./hudba/20-Do_kola_jdem.mp3" },
   ];
 
 /* =====================================================================
@@ -708,37 +747,60 @@
     const box    = document.getElementById('music');
     const audio  = document.getElementById('audio');
     const toggle = document.getElementById('musicToggle');
+    const prevBtn= document.getElementById('musicPrev');
     const nextBtn= document.getElementById('musicNext');
     const nameEl = document.getElementById('musicName');
     let idx = 0;
 
     if (!TRACKS.length) {
       box.dataset.disabled = 'true';
-      nameEl.textContent = 'Hudba (doplnit)';
+      setName('Hudba (doplnit)');
       return;
     }
     box.dataset.disabled = 'false';
-    load(0);
+    load(0);   // po načtení aplikace vždy začínáme první skladbou
 
     function load(i) {
       idx = (i + TRACKS.length) % TRACKS.length;
       audio.src = TRACKS[idx].src;
-      nameEl.textContent = TRACKS[idx].name || ('Skladba ' + (idx + 1));
+      setName(TRACKS[idx].name || ('Skladba ' + (idx + 1)));
     }
+
+    // vloží název do pevného okna a rozjede posun (marquee), když se nevejde
+    function setName(text) {
+      nameEl.classList.remove('scroll');
+      nameEl.innerHTML = '';
+      const inner = document.createElement('span');
+      inner.className = 'marquee-inner';
+      inner.textContent = text;
+      nameEl.appendChild(inner);
+      requestAnimationFrame(() => {
+        const overflow = inner.scrollWidth - nameEl.clientWidth;
+        if (overflow > 4) {
+          inner.style.setProperty('--shift', overflow + 'px');
+          inner.style.setProperty('--dur', Math.max(6, overflow / 22 + 5).toFixed(1) + 's');
+          nameEl.classList.add('scroll');
+        }
+      });
+    }
+
     function play() { audio.play().then(() => setPlaying(true)).catch(() => setPlaying(false)); }
     function setPlaying(on) {
       box.dataset.playing = on ? 'true' : 'false';
       toggle.textContent = on ? '⏸' : '▶';
     }
+    function skip(delta) {
+      const wasPlaying = !audio.paused;
+      load(idx + delta);
+      if (wasPlaying) play();
+    }
 
     toggle.addEventListener('click', () => {
       if (audio.paused) play(); else { audio.pause(); setPlaying(false); }
     });
-    nextBtn.addEventListener('click', () => {
-      const wasPlaying = !audio.paused;
-      load(idx + 1);
-      if (wasPlaying) play();
-    });
+    prevBtn.addEventListener('click', () => skip(-1));
+    nextBtn.addEventListener('click', () => skip(1));
+    // po dohrání skladby automaticky pustí další v pořadí
     audio.addEventListener('ended', () => { load(idx + 1); play(); });
   })();
 
