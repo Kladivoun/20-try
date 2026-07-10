@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>20 — Dvacítka ve vzpomínkách</title>
+<title>20 let – krásný věk 🎉</title>
 
 <!-- ============================================================
      "20 — Dvacítka ve vzpomínkách"  ·  varianta „Konfety"
@@ -124,9 +124,9 @@
   }
   .brand { display: flex; align-items: center; gap: 14px; }
   .brand-logo {
-    width: 72px; height: 72px;
-    border-radius: 16px;
-    background: url('./ikony/20_svicky_1.jpg') center/cover no-repeat,
+    width: 104px; height: 104px;
+    border-radius: 20px;
+    background: url('./ikony/Ikona_web.png') center/cover no-repeat,
                 linear-gradient(135deg, var(--c1), var(--c3));
     box-shadow: 0 5px 16px rgba(124,77,255,0.4);
     flex: 0 0 auto;
@@ -219,29 +219,51 @@
   .tile {
     position: relative;
     aspect-ratio: 1 / 1;
-    cursor: pointer;
-    transform-style: preserve-3d;
-    transition: transform 0.22s ease;
-    background: none; border: none; padding: 0;
     font-family: inherit; color: inherit;
   }
-  .tile:focus-visible { outline: 3px solid var(--c1); outline-offset: 4px; border-radius: 26px; }
-  /* mírné "nálepkové" natočení dle pozice se řídí --rot proměnnou z JS */
+  /* vnitřní vrstva nese "nálepkové" natočení dle pozice (--rot z JS)
+     a perspektivu pro plynulé otočení (flip) samotné plochy */
+  .tile-tilt {
+    position: absolute; inset: 0;
+    transform: rotate(var(--rot, 0deg));
+    transition: transform 0.2s ease;
+    perspective: 900px;
+  }
+  .tile:hover .tile-tilt { transform: rotate(0deg) scale(1.03); }
   .tile-face {
     position: absolute; inset: 0;
     display: flex; align-items: center; justify-content: center;
     border-radius: 28px;
     background: var(--tile-face);
     box-shadow: var(--shadow);
-    transform: rotate(var(--rot, 0deg));
-    transition: transform 0.12s ease;
     overflow: hidden;
     padding: 12px;
     text-align: center;
+    cursor: pointer;
+    transform: rotateY(0deg);
+    transition: transform 0.28s ease;
+    backface-visibility: hidden;
   }
-  .tile:hover .tile-face { transform: rotate(0deg) scale(1.03); }
-  /* flip stav – JS přidá .flipping na půl otočky */
-  .tile.flipping .tile-face { transform: rotate(var(--rot,0deg)) rotateY(90deg); }
+  .tile-face:focus-visible { outline: 3px solid var(--c1); outline-offset: 4px; }
+  /* flip: JS přidá .flipping – plocha se plynule otočí na hranu (90°),
+     v neviditelné fázi se vymění obsah a plocha se dotočí zpět */
+  .tile-tilt.flipping .tile-face { transform: rotateY(90deg); }
+
+  /* --- Tlačítko otočení v pravém dolním rohu --- */
+  .rotate-btn {
+    position: absolute; right: 7px; bottom: 7px; z-index: 4;
+    width: 30px; height: 30px;
+    display: flex; align-items: center; justify-content: center;
+    border: none; border-radius: 50%;
+    background: color-mix(in srgb, var(--tile-accent, var(--c1)) 82%, #ffffff);
+    color: #fff; cursor: pointer;
+    font-size: 17px; line-height: 1;
+    box-shadow: 0 2px 7px rgba(0,0,0,0.28);
+    opacity: 0.72;
+    transition: opacity 0.15s ease, transform 0.2s ease;
+  }
+  .rotate-btn:hover { opacity: 1; transform: rotate(-90deg) scale(1.1); }
+  .rotate-btn:focus-visible { outline: 2px solid var(--c1); outline-offset: 2px; opacity: 1; }
 
   /* barevný přerušovaný okraj (číslo/básnička) */
   .tile[data-state="number"] .tile-face,
@@ -287,11 +309,6 @@
     display: flex; align-items: center; justify-content: center;
     transform: rotate(-2deg); padding: 6px 10px;
   }
-  .poem .quote {
-    position: absolute; top: 2px; left: 10px;
-    font-family: 'Baloo 2', sans-serif; font-size: 44px; line-height: 1;
-    color: var(--tile-accent); opacity: 0.5;
-  }
   .poem-text {
     font-family: 'Caveat', cursive; font-size: 19px; line-height: 1.25;
     color: var(--text); white-space: pre-line; z-index: 1;
@@ -309,6 +326,45 @@
   }
   .state-dots i.on { opacity: 1; background: var(--tile-accent); }
 
+  /* === DETAIL (lightbox – zvětšená fotka / básnička) ======= */
+  .lightbox {
+    position: fixed; inset: 0; z-index: 50;
+    display: flex; align-items: center; justify-content: center;
+    padding: 4vw;
+    background: rgba(10,8,25,0.82);
+    backdrop-filter: blur(6px);
+    animation: lbfade 0.18s ease;
+    cursor: zoom-out;
+  }
+  .lightbox[hidden] { display: none; }
+  @keyframes lbfade { from { opacity: 0; } to { opacity: 1; } }
+  .lb-photo {
+    max-width: 92vw; max-height: 88vh; width: auto; height: auto;
+    border-radius: 14px; display: block; background: #fff;
+    box-shadow: 0 14px 44px rgba(0,0,0,0.55);
+    cursor: default;
+    animation: lbpop 0.2s ease;
+  }
+  .lb-photo-missing {
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    width: min(80vw, 320px); height: min(80vw, 320px);
+    border-radius: 18px; border: 3px dashed #fff;
+    color: #fff; font-size: 1rem; text-align: center; line-height: 1.5;
+    background: rgba(255,255,255,0.06);
+  }
+  .lb-poem {
+    max-width: min(92vw, 640px); max-height: 88vh; overflow: auto;
+    background: var(--surface); color: var(--text);
+    border-radius: 22px; padding: 34px 32px;
+    border: 3px dashed var(--tile-accent, var(--c1));
+    box-shadow: 0 14px 44px rgba(0,0,0,0.55);
+    cursor: default;
+    animation: lbpop 0.2s ease;
+  }
+  .lb-poem-title { font-family: 'Baloo 2', sans-serif; font-size: 1.05rem; color: var(--text-muted); text-align: center; margin-bottom: 16px; }
+  .lb-poem-text { font-family: 'Caveat', cursive; font-size: clamp(24px, 6vw, 40px); line-height: 1.4; white-space: pre-line; text-align: center; }
+  @keyframes lbpop { from { opacity: 0; transform: scale(0.94); } to { opacity: 1; transform: scale(1); } }
+
   /* === ZÁPATÍ ============================================== */
   .app-footer {
     position: relative; z-index: 2;
@@ -319,10 +375,17 @@
   /* === RESPONZIVITA ======================================== */
   @media (max-width: 560px) {
     .grid { grid-template-columns: repeat(2, 1fr); gap: 12px; }
-    .brand-title { font-size: 1.25rem; }
+    .brand-title { font-size: 1.2rem; }
+    .brand-logo { width: 84px; height: 84px; border-radius: 18px; }
     main { padding: 22px 14px 32px; }
     .header-actions { gap: 8px; }
     .music-info { max-width: 120px; }
+    /* na mobilu dlaždice srovnané rovně – bez náklonu */
+    .tile-tilt { transform: none; }
+    .tile:hover .tile-tilt { transform: scale(1.02); }
+    .num { transform: none; }
+    .photo-wrap { transform: none; }
+    .poem { transform: none; }
   }
 </style>
 </head>
@@ -335,8 +398,8 @@
 
 <header class="app-header">
   <div class="brand">
-    <div class="brand-logo" id="brandLogo" role="img" aria-label="Logo – 20 svíček"></div>
-    <h1 class="brand-title">Dvacítka ve vzpomínkách</h1>
+    <div class="brand-logo" id="brandLogo" role="img" aria-label="Logo – 20 let"></div>
+    <h1 class="brand-title">20 let – krásný věk 🎉</h1>
   </div>
 
   <div class="header-actions">
@@ -364,8 +427,13 @@
   <div class="grid" id="grid"><!-- dlaždice generuje JS --></div>
 </main>
 
+<!-- Detail (zvětšená fotka / básnička) – obsah plní JS -->
+<div class="lightbox" id="lightbox" role="dialog" aria-modal="true" aria-label="Detail dlaždice" hidden>
+  <div class="lightbox-inner" id="lightboxInner"></div>
+</div>
+
 <footer class="app-footer">
-  (c) 2026 KeCl v1.1
+  (c) 2026 KeCl v1.2
 </footer>
 
 <audio id="audio" preload="none"></audio>
@@ -411,7 +479,8 @@
   // Skladby na pozadí. Až budou hotové, např.:
   //   { name: "Název skladby", src: "./hudba/skladba1.mp3" },
   const TRACKS = [
-    // zatím prázdné – ovladač hudby je neaktivní, dokud sem něco nepřidáš
+    { name: "V rytmu", src: "./hudba/1_V rytmu.mp3" },
+    { name: "Jízda",   src: "./hudba/2_Jizda.mp3" },
   ];
 
 /* =====================================================================
@@ -431,29 +500,47 @@
   for (let age = 1; age <= 20; age++) {
     const i = age - 1;
     const accent = ACCENTS[i % 3];
-    const tile = document.createElement('button');
+
+    const tile = document.createElement('div');
     tile.className = 'tile';
-    tile.type = 'button';
     tile.dataset.state = 'number';
     tile.dataset.age = age;
     tile.style.setProperty('--rot', TILE_ROT[i] + 'deg');
     tile.style.setProperty('--tile-accent', accent.c);
     tile.style.setProperty('--tile-accent2', accent.c2);
-    tile.setAttribute('aria-label', `Rok ${age} — klikni pro přepnutí (číslo / fotka / básnička)`);
+
+    const tilt = document.createElement('div');
+    tilt.className = 'tile-tilt';
 
     const face = document.createElement('div');
     face.className = 'tile-face';
+    face.setAttribute('role', 'button');
+    face.tabIndex = 0;
+    face.setAttribute('aria-label', `Rok ${age} — klikni pro zvětšení detailu`);
     face.innerHTML = renderState('number', age);
+    tilt.appendChild(face);
 
     const dots = document.createElement('div');
     dots.className = 'state-dots';
     dots.innerHTML = '<i class="on"></i><i></i><i></i>';
 
-    tile.appendChild(face);
+    const rotBtn = document.createElement('button');
+    rotBtn.className = 'rotate-btn';
+    rotBtn.type = 'button';
+    rotBtn.setAttribute('aria-label', `Otočit dlaždici – rok ${age} (číslo / fotka / básnička)`);
+    rotBtn.title = 'Otočit dlaždici (číslo → fotka → básnička)';
+    rotBtn.textContent = '↻';
+
+    tile.appendChild(tilt);
     tile.appendChild(dots);
+    tile.appendChild(rotBtn);
     grid.appendChild(tile);
 
-    tile.addEventListener('click', () => cycleTile(tile));
+    face.addEventListener('click', () => openDetail(tile));
+    face.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); openDetail(tile); }
+    });
+    rotBtn.addEventListener('click', (e) => { e.stopPropagation(); cycleTile(tile); });
   }
 
   function renderState(state, age) {
@@ -471,18 +558,16 @@
     // poem
     const text = (POEMS[i] || '').trim();
     if (!text) {
-      return `<div class="poem"><span class="quote">&ldquo;</span>
-                <span class="poem-missing">doplnit básničku<br>(rok ${age})</span></div>`;
+      return `<div class="poem"><span class="poem-missing">doplnit básničku<br>(rok ${age})</span></div>`;
     }
-    return `<div class="poem"><span class="quote">&ldquo;</span>
-              <span class="poem-text">${escapeHtml(text)}</span></div>`;
+    return `<div class="poem"><span class="poem-text">${escapeHtml(text)}</span></div>`;
   }
 
   function escapeHtml(s) {
     return s.replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
   }
 
-  /* ---- Cyklení stavů s flip animací (odolné proti rychlému klikání) ---- */
+  /* ---- Cyklení stavů s plynulou flip animací (rohové tlačítko) ---- */
   function cycleTile(tile) {
     if (tile.dataset.animating === '1') return;   // zámek během animace
     tile.dataset.animating = '1';
@@ -490,16 +575,17 @@
     const age = parseInt(tile.dataset.age, 10);
     const cur = tile.dataset.state;
     const next = STATES[(STATES.indexOf(cur) + 1) % STATES.length];
+    const tilt = tile.querySelector('.tile-tilt');
     const face = tile.querySelector('.tile-face');
 
-    tile.classList.add('flipping');            // otočí na 90°
+    tilt.classList.add('flipping');            // plocha se otočí na hranu (90°)
     setTimeout(() => {
-      face.innerHTML = renderState(next, age); // vymění obsah v "neviditelné" fázi
+      face.innerHTML = renderState(next, age); // vymění obsah v neviditelné fázi
       tile.dataset.state = next;
       updateDots(tile, next);
-      tile.classList.remove('flipping');       // dotočí zpět
-      setTimeout(() => { tile.dataset.animating = '0'; }, 230);
-    }, 220);
+      tilt.classList.remove('flipping');       // dotočí plynule zpět
+      setTimeout(() => { tile.dataset.animating = '0'; }, 300);
+    }, 300);
   }
 
   function updateDots(tile, state) {
@@ -508,6 +594,48 @@
       d.classList.toggle('on', k === idx);
     });
   }
+
+  /* ---- Detail: zvětšená fotka / básnička ---- */
+  const lightbox = document.getElementById('lightbox');
+  const lightboxInner = document.getElementById('lightboxInner');
+
+  function openDetail(tile) {
+    const state = tile.dataset.state;
+    const age = parseInt(tile.dataset.age, 10);
+    const accent = tile.style.getPropertyValue('--tile-accent') || 'var(--c1)';
+
+    if (state === 'photo') {
+      lightboxInner.innerHTML =
+        `<img class="lb-photo" src="${photoSrc(age)}" alt="Fotka – ${age} let"
+              onerror="this.outerHTML='<div class=&quot;lb-photo-missing&quot;><span style=&quot;font-size:2rem&quot;>📷</span>fotka (${age} let)<br>zatím chybí</div>'">`;
+    } else if (state === 'poem') {
+      const text = (POEMS[age - 1] || '').trim();
+      const body = text
+        ? `<div class="lb-poem-text">${escapeHtml(text)}</div>`
+        : `<div class="lb-poem-text" style="opacity:.7">doplnit básničku</div>`;
+      lightboxInner.innerHTML =
+        `<div class="lb-poem" style="--tile-accent:${accent}">
+           <div class="lb-poem-title">${age} let</div>${body}
+         </div>`;
+    } else {
+      // stav "číslo" – zvětšený detail nemá smysl, otevře se básnička/fotka až po otočení
+      return;
+    }
+    lightbox.hidden = false;
+  }
+
+  function closeDetail() {
+    lightbox.hidden = true;
+    lightboxInner.innerHTML = '';
+  }
+
+  lightbox.addEventListener('click', (e) => {
+    // klik mimo fotku/básničku (na ztmavené pozadí) → zavřít
+    if (!e.target.closest('.lb-photo, .lb-poem')) closeDetail();
+  });
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape' && !lightbox.hidden) closeDetail();
+  });
 
   /* ---- Dekorativní pozadí: plovoucí tvary + glow + hvězdy ---- */
   (function buildDecor() {
