@@ -124,7 +124,7 @@
   .brand-logo {
     width: 104px; height: 104px;
     border-radius: 20px;
-    background: url('./ikony/Ikona_20_web.jpg') center/cover no-repeat,
+    background: url('./ikony/20_logo_web.jpg') center/cover no-repeat,
                 linear-gradient(135deg, var(--c1), var(--c3));
     box-shadow: 0 5px 16px rgba(124,77,255,0.4);
     flex: 0 0 auto;
@@ -170,8 +170,8 @@
   .music-info { display: flex; align-items: center; gap: 8px; }
   /* okno názvu skladby – pevná šířka; dlouhé názvy se posouvají (marquee) */
   .music-name {
-    display: inline-block; width: 170px;
-    font-size: 0.8rem; color: var(--text-muted);
+    display: inline-block; width: 200px;
+    font-size: 0.925rem; color: var(--text-muted);
     white-space: nowrap; overflow: hidden;
   }
   .music-name .marquee-inner { display: inline-block; white-space: nowrap; will-change: transform; }
@@ -415,7 +415,7 @@
       justify-content: space-between; align-items: center; gap: 8px;
     }
     /* užší okno názvu, aby se ovladač na mobil vešel */
-    .music-name { width: 108px; }
+    .music-name { width: 116px; font-size: 0.8625rem; }
     /* přepínač stylů jen jako ikonka – bez textu auto/den/noc */
     .theme-toggle { padding: 8px 10px; }
     .theme-toggle-label { display: none; }
@@ -472,7 +472,7 @@
 </div>
 
 <footer class="app-footer">
-  (c) 2026 KeCl v1.5
+  (c) 2026 KeCl v1.6
 </footer>
 
 <audio id="audio" preload="none"></audio>
@@ -493,12 +493,12 @@
 
   // 20 básniček (prázdné = zobrazí se placeholder "doplnit básničku")
   const POEMS = [
-    /* 1 */  "",
-    /* 2 */  "",
-    /* 3 */  "",
+    /* 1 */  "Milá sestro, mám tě rád,\npodáš mi ten špendlíček?\nPokud mi ho nepodáš,\ntak dostaneš loktíček.",
+    /* 2 */  "Ty můj malej bratříčku,\ntu máš sladké lízátko.\nJen co kmíny opálím,\npůjdem plavat zakrátko.",
+    /* 3 */  "Zlákali nás do ZOO,\nslíbili nám lachtany.\nTady velké prdlačky,\nto jdem radši do vany.",
     /* 4 */  "",
     /* 5 */  "",
-    /* 6 */  "Naše malá dvojčátka, šest let už jim je,\npři baletu na špičkách radost tancuje.\nDělají i další fajn a skvělé věci,\nneustále v pohybu, neposedí v kleci.",
+    /* 6 */  "Já jsem velká baleťačka\na to je můj malý bráška.\nSice nejsem baleťák,\nzdobí mě však prima pták.",
     /* 7 */  "",
     /* 8 */  "",
     /* 9 */  "",
@@ -519,10 +519,10 @@
   //   { name: "Název skladby", src: "./hudba/skladba1.mp3" },
   const TRACKS = [
     { name: "1. Roztoč ten sál", src: "./hudba/1-Roztoč_ten_sál.mp3" },
-    { name: "2. Dvacet svíček", src: "./hudba/2-Dvacet_svíček.mp3" },
+    { name: "2. Mikrofon je náš", src: "./hudba/2-Mikrofon_je_náš.mp3" },
     { name: "3. Cítíš ten groove", src: "./hudba/3-Cítíš_ten_groove.mp3" },
     { name: "4. Zvedni pěst", src: "./hudba/4-Zvedni_pěst.mp3" },
-    { name: "5. Mikrofon je náš", src: "./hudba/5-Mikrofon_je_náš.mp3" },
+    { name: "5. Dvacet svíček", src: "./hudba/5-Dvacet_svíček.mp3" },
     { name: "6. Easy vibe", src: "./hudba/6-Easy_vibe.mp3" },
     { name: "7. Krásný sen", src: "./hudba/7-Krásný_sen.mp3" },
     { name: "8. Ruce nahoru", src: "./hudba/8-Ruce_nahoru.mp3" },
@@ -530,7 +530,7 @@
     { name: "10. Šampus teče", src: "./hudba/10-Šampus_teče.mp3" },
     { name: "11. Na zdraví hej", src: "./hudba/11-Na_zdraví_hej.mp3" },
     { name: "12. Neonová noc", src: "./hudba/12-Neonová_noc.mp3" },
-    { name: "13. Cítíš tu lásku", src: "./hudba/13-Cítíš_tu_lásku.mp3" },
+    { name: "13. Dvacet", src: "./hudba/13-Dvacet.mp3" },
     { name: "14. Kytara a hlas", src: "./hudba/14-Kytara_a_hlas.mp3" },
     { name: "15. Basová bouř", src: "./hudba/15-Basová_bouř.mp3" },
     { name: "16. Opona vzhůru", src: "./hudba/16-Opona_vzhůru.mp3" },
