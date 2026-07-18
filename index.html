@@ -464,7 +464,8 @@
     .tile:hover .tile-tilt { transform: scale(1.02); }
     .num { transform: none; }
     .photo-wrap { transform: none; }
-    .poem { transform: none; }
+    /* na mobilu bez rotace + text nepatrně nad vertikálním středem (spodní padding) */
+    .poem { transform: none; padding: 6px 10px 16px; }
     /* básnička na mobilní dlaždici – menší písmo, aby se vešla */
     .poem-text { font-size: 15px; line-height: 1.2; }
 
@@ -523,7 +524,7 @@
 </div>
 
 <footer class="app-footer">
-  (c) 2026 KeCl v1.21
+  (c) 2026 KeCl v1.22
 </footer>
 
 <audio id="audio" preload="none"></audio>
